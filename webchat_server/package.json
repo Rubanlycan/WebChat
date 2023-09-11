@@ -1,0 +1,25 @@
+{
+  "name": "webchat-server",
+  "version": "1.0.0",
+  "description": "socket.io based chat application",
+  "main": "index.js",
+  "author": "Ruban",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.0.1",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.7",
+    "utf-8-validate": "^6.0.3"
+  }
+}
