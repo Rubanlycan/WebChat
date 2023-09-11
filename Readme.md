@@ -19,7 +19,9 @@ prerequites
 then go to the downloaded project folder path
 
 change directory cd ./webchat_client for client ad cd ./webchat_server for server side
-run Yarn or npm  install for server  andclient seperately
+run Yarn or npm  install for server  and client seperately
+
+after installing all packages 
 
 split terminal for ./webchat_client  and ./webchat_server 
 
@@ -31,8 +33,5 @@ if all goes well then   go  to browser  and type http://localhost:3000 for clien
 
 
 
-
-
-after installing all packages 
 
 
