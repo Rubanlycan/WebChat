@@ -5,13 +5,15 @@ const morgan = require('morgan')
 const route = require('./routers/router')
 const { Server } = require("socket.io");
 const { createServer } = require("http");
+const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const { v4: uuidv4 } = require('uuid');
 
+dotenv.config()
 const PORT = 5000
 const app = express()
 mongo.set("strictQuery", false);
-mongo.connect("mongodb+srv://rubanlycan:webchat1995@cluster0.jc01dam.mongodb.net/?retryWrites=true&w=majority",{useNewUrlParser:true,dbName:"webchat_db"})
+mongo.connect(process.env.MONGO_URI,{useNewUrlParser:true,dbName:"webchat_db"})
 
  bodyParser.urlencoded({extended:true})
 const db = mongo.connection
