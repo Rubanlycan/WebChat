@@ -12,12 +12,15 @@ type ChatProps = {
 const Chat:React.FC<ChatProps> = ({bulkMessage,}) => {
 
   return (
-    <div className='h-full overflow-y-visible flex flex-col bg-white justify-end'>
-    {bulkMessage.map( (m,i )=> ( <div className={`w-fit flex flex-col ${!m.fromSelf?'self-start':'self-end'} w-min-[10px]`}>   
-        <div key={i} className={`p-2 m-2 min-w-10 ${m.fromSelf? 'bg-primary':'bg-secondary '} rounded-lg`}>
-      <p className='text-white text-lg'>{ m.message }</p> 
-      <p className='text-white text-[10px]'>{moment().format('hh:mm A')}</p></div> 
+    <div className='inner-div flex flex-col'>
+ 
+    {bulkMessage.map( (m,i )=> ( <div key={i} className={`flex flex-col  w-fit ${!m.fromSelf?'self-start':'self-end'}`}>   
+        <div  className={`p-2 m-2 max-w-lg ${m.fromSelf? 'bg-primary':'bg-secondary '} rounded-lg `}>
+      <p className='text-white text-lg break-words  '>{ m.message }</p> 
+      <p className='text-white text-[10px] py-1'>{moment().format('hh:mm A')}</p></div> 
       </div> ))}
+
+
       </div>
 
   )
