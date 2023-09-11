@@ -12,7 +12,7 @@ type ChatProps = {
 const Chat: React.FC<ChatProps> = ( { bulkMessage, } ) => {
 
   return (
-    <div className='inner-div flex flex-col'>
+    <div className='inner-div flex flex-col justify-end'>
 
       { bulkMessage.map( ( m, i ) => ( <div key={ i } className={ `flex flex-col  w-fit ${!m.fromSelf ? 'self-start' : 'self-end'}` }>
         <div className={ `p-2 m-2 max-w-lg ${m.fromSelf ? 'bg-primary' : 'bg-secondary '} rounded-lg ` }>

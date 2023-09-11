@@ -29,7 +29,9 @@ now run command yarn run dev for client side and yarn start for  server side
 
 if all goes well then   go  to browser  and type http://localhost:3000 for client and http://localhost:5000 for server
 
-*** Hurray now test the application *****
+*** Hurray now test the application ***
+
+
 
 
 
