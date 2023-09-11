@@ -148,9 +148,9 @@ const Home = ( props: Props ) => {
    return index
   }
   return (
-    <div className='h-full'>
+    <>
 
-      <div className=' flex h-full bg-white'>
+      <div className=' flex h-screen bg-white'>
         <div className=' w-3/12 border-r-2 h-full'>
           <div className='flex justify-between items-center  h-14 bg-primary' ><p className='text-white p-3'>Users List</p></div>
           <ul>
@@ -166,10 +166,9 @@ const Home = ( props: Props ) => {
             } ) }
           </ul>
         </div>
-        <div className='w-9/12 flex flex-col justify-end'>
+        <div className=' flex flex-col justify-end outer-div'>
           <div className='flex justify-between items-center px-3 h-20 bg-primary'>
-
-            <p className='text-white  px-4'>{ selectedName?.username ? selectedName?.username : "No online users found" }</p>
+          <p className='text-white  px-4'>{ selectedName?.username ? selectedName?.username : "No online users found" }</p>
             <div className='flex'>
               <div className='flex flex-col'>
                 <p className='text-white  px-4'>{ userData?.name }</p>
@@ -177,14 +176,17 @@ const Home = ( props: Props ) => {
               </div>
               <p className='text-white p-2 cursor-pointer' onClick={ onLogout }>Logout</p>
             </div>
-          </div>
-          <Chat bulkMessage={ bulkMessage } />
+       
+      </div>
+    
+      <Chat bulkMessage={ bulkMessage } />
           <ChatFooter message={ message } sendMessage={ sendMessage } setMessage={ setMessage } />
 
-        </div>
+
+      </div>
       </div>
       <ToastContainer />
-    </div>
+    </>
   )
 }
 

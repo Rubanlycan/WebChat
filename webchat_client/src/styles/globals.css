@@ -15,7 +15,22 @@
     --background-end-rgb: 0, 0, 0;
   }
 }
+.outer-div {
+            width: 100%; /* Set the width as needed */
+            height: 100%; /* Set the height as needed */
+            border: 1px solid #ccc;
+            overflow: hidden; /* Hide content that overflows */
+        }
 
+        /* Style for the inner div */
+        .inner-div {
+            displasy:flex;
+            justify-items:end;
+            width: 100%; /* Make it 100% width of the parent */
+            height: 80%; /* Make it 100% height of the parent */
+            overflow-y: auto; /* Enable vertical scrolling */
+            padding: 10px; /* Optional: Add padding for content */
+        }
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
