@@ -3,6 +3,7 @@
 import api from '@/axios/axiosInstance'
 import Chat from '@/components/chat';
 import ChatFooter from '@/components/chatFooter';
+import ChatHeader from '@/components/ChatHeader';
 import { persistor } from '@/redux/store';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
@@ -44,37 +45,37 @@ const Home = ( props: Props ) => {
       fromSelf: false,
     } ] );
 
-   
+
 
   }
 
   useEffect( () => {
     socket.auth = { username: userData?.name, db_id: userData?._id };
     socket.connect();
-    socket.on("connect", () => {
-     userOnlineList.forEach((user) => {
-    
-        if (user?.self) {
+    socket.on( "connect", () => {
+      userOnlineList.forEach( ( user ) => {
+
+        if ( user?.self ) {
           user.connected = true;
         }
-      });
+      } );
     } )
-    socket.on("disconnect", () => {
-      userOnlineList.forEach((user) => {
-        if (user.self) {
+    socket.on( "disconnect", () => {
+      userOnlineList.forEach( ( user ) => {
+        if ( user.self ) {
           user.connected = false;
         }
-      });
-    });
-      socket.on( "users", ( users ) => {
-        console.log('users: ',users)
-        setUserOnlineList( users )
-        setSelectedName( users.filter(u=>u.username!==userData.name)[0])
-      } )
+      } );
+    } );
+    socket.on( "users", ( users ) => {
+      console.log( 'users: ', users )
+      setUserOnlineList( users )
+      setSelectedName( users.filter( u => u.username !== userData.name )[ 0 ] )
+    } )
 
-      socket.on( "connect", socketIsConnected );
-      socket.on( "disconnect", socketIsNotConnected );
-      socket.on( "private message", messageReceiver )
+    socket.on( "connect", socketIsConnected );
+    socket.on( "disconnect", socketIsNotConnected );
+    socket.on( "private message", messageReceiver )
 
     return () => {
       socket.off( "private message", messageReceiver )
@@ -89,10 +90,10 @@ const Home = ( props: Props ) => {
   const getAllusersList = () => {
     api.get( "/usersList" ).then( ( res: any ) => {
       if ( res && res.data.statusCode === 200 ) {
-         
-        let filteredData =  res.data.data.filter( user => user._id !== userData._id )
 
-          setUserList(filteredData)
+        let filteredData = res.data.data.filter( user => user._id !== userData._id )
+
+        setUserList( filteredData )
 
       }
     } ).catch( ( e: any ) => {
@@ -118,34 +119,33 @@ const Home = ( props: Props ) => {
   }
   const sendMessage = () => {
 
-  socket.emit( "private message", {
-    message,
-    to: selectedName?.userID,
-  } );
-  setBulkMessage(prev=>[...prev,{message,fromSelf:true}])
+    socket.emit( "private message", {
+      message,
+      to: selectedName?.userID,
+    } );
+    setBulkMessage( prev => [ ...prev, { message, fromSelf: true } ] )
 
     setMessage( "" )
   }
 
-  const selectUserNameToChat = (u:any)=>{
-    let findUser = userOnlineList.find(i=>i.db_id===u._id)
-  
-    let user = {username:"",db_id:"",userID:""}
- 
-    if(findUser?.userID)
-    {
-        user = {...selectedName,username:findUser.username,db_id:findUser.db_id,userID:findUser.userID}
-       
-    }else{
-    user = {...selectedName,username:u.name,db_id:u._id,userID:""}
+  const selectUserNameToChat = ( u: any ) => {
+    let findUser = userOnlineList.find( i => i.db_id === u._id )
+
+    let user = { username: "", db_id: "", userID: "" }
+
+    if ( findUser?.userID ) {
+      user = { ...selectedName, username: findUser.username, db_id: findUser.db_id, userID: findUser.userID }
+
+    } else {
+      user = { ...selectedName, username: u.name, db_id: u._id, userID: "" }
     }
-    setBulkMessage([])
-    setSelectedName(user)
+    setBulkMessage( [] )
+    setSelectedName( user )
   }
 
-  const checkUserLoggedIn = (id)=>{
-   let index =  userOnlineList.findIndex(u=>u.db_id===id)
-   return index
+  const checkUserLoggedIn = ( id ) => {
+    let index = userOnlineList.findIndex( u => u.db_id === id )
+    return index
   }
   return (
     <>
@@ -156,34 +156,23 @@ const Home = ( props: Props ) => {
           <ul>
             { usersList.map( user => {
               return (
-                <div onClick={()=>selectUserNameToChat(user)} key={ user?._id } className='cursor-pointer border-b-2 flex justify-between items-center px-2'>
+                <div onClick={ () => selectUserNameToChat( user ) } key={ user?._id } className='cursor-pointer border-b-2 flex justify-between items-center px-2'>
                   <li
 
                     className=' text-black px-2 py-4 '>{ user?.name }</li>
-                  <p className={ `${checkUserLoggedIn(user._id)>-1? "text-success " : "text-error"} text-sm` }>{ ` ${checkUserLoggedIn(user._id)>-1? "online" : "offline"} `}</p>
+                  <p className={ `${checkUserLoggedIn( user._id ) > -1 ? "text-success " : "text-error"} text-sm` }>{ ` ${checkUserLoggedIn( user._id ) > -1 ? "online" : "offline"} ` }</p>
                 </div>
               )
             } ) }
           </ul>
         </div>
-        <div className=' flex flex-col justify-end outer-div'>
-          <div className='flex justify-between items-center px-3 h-20 bg-primary'>
-          <p className='text-white  px-4'>{ selectedName?.username ? selectedName?.username : "No online users found" }</p>
-            <div className='flex'>
-              <div className='flex flex-col'>
-                <p className='text-white  px-4'>{ userData?.name }</p>
-                <p className='text-success text-sm  px-4'>{ userData?.isLoggedIn ? "online" : "offline" }</p>
-              </div>
-              <p className='text-white p-2 cursor-pointer' onClick={ onLogout }>Logout</p>
-            </div>
-       
-      </div>
-    
-      <Chat bulkMessage={ bulkMessage } />
+        <div className='w-9/12 flex flex-col justify-end'>
+          <ChatHeader onLogout={ onLogout } userData={ userData } selectedName={ selectedName } />
+          <Chat bulkMessage={ bulkMessage } />
           <ChatFooter message={ message } sendMessage={ sendMessage } setMessage={ setMessage } />
 
 
-      </div>
+        </div>
       </div>
       <ToastContainer />
     </>
