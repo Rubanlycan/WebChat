@@ -4,12 +4,13 @@ import api from '@/axios/axiosInstance'
 import Chat from '@/components/chat';
 import ChatFooter from '@/components/chatFooter';
 import ChatHeader from '@/components/ChatHeader';
-import { persistor } from '@/redux/store';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { toast, ToastContainer } from 'react-toastify';
 import socket from '../socket/socket';
+import Modal from '@/components/modal';
 
 type Props = {}
 type messageProps = {
@@ -25,13 +26,29 @@ const Home = ( props: Props ) => {
 
   const Router = useRouter()
   const [ usersList, setUserList ] = React.useState( [] )
+  const [ createBtnPressed, setCreateBtnPressed ] = useState( false )
   const { userData } = useSelector( ( state: any ) => state.userSlice )
   const [ message, setMessage ] = React.useState( '' )
   const [ isConnected, setIsConnected ] = React.useState( socket.connected )
+  const [ modalOpen, setModalOpen ] = React.useState( false)
 
   const [ bulkMessage, setBulkMessage ] = useState<( messageProps[] )>( [] )
   const [ userOnlineList, setUserOnlineList ] = useState( [] )
   const [ selectedName, setSelectedName ] = useState( { username: "", db_id: "", userID: "" } )
+
+  const onCreateGameClick = () => {
+    setCreateBtnPressed( !createBtnPressed )
+  }
+
+  useEffect(()=>{
+     let time = setTimeout(()=>{setCreateBtnPressed(false),setModalOpen(false)},15*1000)
+          
+     return()=>clearTimeout(time)
+  },[createBtnPressed])
+  useEffect(()=>{
+        if(createBtnPressed)
+    socket.emit('game', {roomName:'gameRoom',roomId:userData._id,createdBy:userData.username});
+  },[createBtnPressed])
 
   const socketIsConnected = () => {
     setIsConnected( true )
@@ -45,14 +62,29 @@ const Home = ( props: Props ) => {
       fromSelf: false,
     } ] );
 
-
-
   }
-
+const handleModalClose = ()=>{
+  setModalOpen(!modalOpen)
+}
   useEffect( () => {
     socket.auth = { username: userData?.name, db_id: userData?._id };
     socket.connect();
+
+
     socket.on( "connect", () => {
+
+      socket.on("game",(room)=>{
+    console.log('created room: ',userData._id!==room.roomId)
+        if(userData._id!==room.roomId)
+        {
+      handleModalClose()
+        socket.emit("joining Game",room)
+      
+    }
+      })
+     
+      socket.on("users joined",d=>console.log("users joined: ",d))
+      socket.on('event',(d)=>console.log('room chat: ',d))
       userOnlineList.forEach( ( user ) => {
 
         if ( user?.self ) {
@@ -167,14 +199,27 @@ const Home = ( props: Props ) => {
           </ul>
         </div>
         <div className='w-9/12 flex flex-col justify-end'>
-          <ChatHeader onLogout={ onLogout } userData={ userData } selectedName={ selectedName } />
+          <ChatHeader onLogout={ onLogout } userData={ userData } selectedName={ selectedName } onCreateGameClick={ onCreateGameClick } createBtnPressed={ createBtnPressed } />
           <Chat bulkMessage={ bulkMessage } />
           <ChatFooter message={ message } sendMessage={ sendMessage } setMessage={ setMessage } />
-
+          {modalOpen && <Modal><div className='h-[250px] w-[380px] flex justify-center items-center rounded-md  bg-white'>
+            <div className='w-full h-full'>
+              <p className='text-center my-5 text-xl text-success'>Match Joining Pool</p>
+              <p className='text-center my-5'>kamal Created the Game?</p>
+            <p className='text-center'>Players Joined</p>
+            <p className='text-center'>2/4</p>
+            <div className='flex justify-between mx-3 '>
+              <button className='bg-success py-2 px-4 rounded-md text-white'>Join</button>
+              <p className='text-error' onClick={handleModalClose}>Cancel</p>
+            </div>
+            </div>
+       
+           </div></Modal>}
 
         </div>
       </div>
       <ToastContainer />
+   
     </>
   )
 }
