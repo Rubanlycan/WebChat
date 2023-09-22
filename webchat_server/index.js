@@ -31,7 +31,7 @@ db.once('open',()=>{
 
 app.use(bodyParser.json())
 app.use(morgan('dev'))
-app.use(cors( {origin: "http://localhost:3000",
+app.use(cors( {origin: "*",
 methods: ["GET", "POST","DELETE","PUT"]}))
 app.use(express.urlencoded({ extended: true }));
 app.use('/webchat',route)
@@ -42,7 +42,7 @@ app.get('/',(req,res)=>{
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: "*",
       methods: ["GET", "POST","DELETE","PUT"]
     },});
 
@@ -84,9 +84,24 @@ io.on("connection", (socket) => {
         db_id:socket.db_id
       });
     }
+
+  socket.on('game',(room)=>{
+ 
+        socket.join(room.roomName)
+    io.sockets.emit("game",room)
+    console.log(room.roomName+" created by ",socket.username) 
+
+  })
+
+
+  socket.on( "joiningGame",room=>{
+    socket.join(room.roomName)
+
+
+    io.sockets.in(room.roomName).emit("event",  io.sockets.adapter.rooms.get("gameRoom")?.size);
+  })
  
 
-  console.log("server users",users)
   io.sockets.emit("users", users);
   socket.on("private message", ({ message, to }) => {
     console.log('from: ',socket.id,"to: ",to,"message:_",message)
