@@ -10,13 +10,18 @@ async (userData: any) => {
   return response.data
 })
 const initialState = {
-userData:{}
+userData:{},
+onlineUsers:[]
 }
 const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers:{
-      
+       setOnlineUsers:(state,action)=>{
+         return {...state,onlineUsers:action.payload}
+       }
+     
+
     },
     extraReducers:(builder:any)=>
     {builder
@@ -27,5 +32,5 @@ const userSlice = createSlice({
 }
 })
 
-// export const {userSlice} = userSlice.actions
+export const {setOnlineUsers} = userSlice.actions
 export default userSlice.reducer

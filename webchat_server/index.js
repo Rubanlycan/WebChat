@@ -8,6 +8,10 @@ const { createServer } = require("http");
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const { v4: uuidv4 } = require('uuid');
+const { connectRedis } = require('./services/common')
+
+
+const redisClient = connectRedis()
 
 dotenv.config()
 const PORT = 5000
@@ -86,22 +90,28 @@ io.on("connection", (socket) => {
     }
 
   socket.on('game',(room)=>{
+    redisClient.set(room.roomId,room.roomName)
  
+    console.log(room.roomName+" created by ",room.createdBy) 
         socket.join(room.roomName)
+     
     io.sockets.emit("game",room)
-    console.log(room.roomName+" created by ",socket.username) 
-
+   
   })
-
 
   socket.on( "joiningGame",room=>{
     socket.join(room.roomName)
 
-
-    io.sockets.in(room.roomName).emit("event",  io.sockets.adapter.rooms.get("gameRoom")?.size);
+    io.sockets.in(room.roomName).emit("event",  io.sockets.adapter.rooms.get(room.roomName)?.size);
+    socket.on("startGame",p=>{
+      if(p==="players joined")
+      {
+        io.sockets.in(room.roomName).emit("startGame", p);
+      }
+    })
   })
- 
 
+ 
   io.sockets.emit("users", users);
   socket.on("private message", ({ message, to }) => {
     console.log('from: ',socket.id,"to: ",to,"message:_",message)
@@ -111,6 +121,13 @@ io.on("connection", (socket) => {
     });
     
   });
+  socket.on("diceRoll",val=>{
+    console.log(socket.userID)
+    let roomname =    redisClient.get(socket.userID )
+ roomname.then(r=>console.log(socket.userID,r))
+
+    socket.emit("diceVal",val)
+  })
 });
 //
 httpServer.listen(PORT,()=>{

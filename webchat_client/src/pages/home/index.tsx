@@ -7,10 +7,11 @@ import ChatHeader from '@/components/ChatHeader';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { toast, ToastContainer } from 'react-toastify';
 import socket from '../socket/socket';
 import Modal from '@/components/modal';
+import { setOnlineUsers } from '@/redux/Reducers/userSlice';
 
 type Props = {}
 type messageProps = {
@@ -27,11 +28,15 @@ const Home = ( props: Props ) => {
   const Router = useRouter()
   const [ usersList, setUserList ] = React.useState( [] )
   const [ createBtnPressed, setCreateBtnPressed ] = useState( false )
+  const [ playerJoined, setPlayerJoined ] = useState( false )
   const { userData } = useSelector( ( state: any ) => state.userSlice )
   const [ message, setMessage ] = React.useState( '' )
   const [ isConnected, setIsConnected ] = React.useState( socket.connected )
-  const [ modalOpen, setModalOpen ] = React.useState( false)
-
+  const [ gameCreatedBy, setGameCreatedBy ] = React.useState( {} )
+  const [ modalOpen, setModalOpen ] = React.useState( false )
+  const [ noOfPlayerJoined, setNoOfPlayerJoined ] = useState( 1 )
+  const [ roomCreated, setRoomCreated ] = useState( null )
+const dispatch = useDispatch()
   const [ bulkMessage, setBulkMessage ] = useState<( messageProps[] )>( [] )
   const [ userOnlineList, setUserOnlineList ] = useState( [] )
   const [ selectedName, setSelectedName ] = useState( { username: "", db_id: "", userID: "" } )
@@ -40,15 +45,19 @@ const Home = ( props: Props ) => {
     setCreateBtnPressed( !createBtnPressed )
   }
 
-  useEffect(()=>{
-     let time = setTimeout(()=>{setCreateBtnPressed(false),setModalOpen(false)},15*1000)
-          
-     return()=>clearTimeout(time)
-  },[createBtnPressed])
-  useEffect(()=>{
-        if(createBtnPressed)
-    socket.emit('game', {roomName:'gameRoom',roomId:userData._id,createdBy:userData.username});
-  },[createBtnPressed])
+  useEffect( () => {
+    let time = setTimeout( () => {
+      setCreateBtnPressed( false )
+    }, 15 * 1000 )
+
+
+    if ( createBtnPressed ) {
+
+      socket.emit( 'game', { roomName: 'gameRoom' + Math.floor( Math.random() * 100 ) + 1, roomId: userData._id, createdBy: userData.name } );
+
+    }
+    return () => clearTimeout( time )
+  }, [ createBtnPressed ] )
 
   const socketIsConnected = () => {
     setIsConnected( true )
@@ -63,34 +72,50 @@ const Home = ( props: Props ) => {
     } ] );
 
   }
-const handleModalClose = ()=>{
-  setModalOpen(!modalOpen)
-}
+  const handleModalOpen = () => {
+    setModalOpen( !modalOpen )
+  }
+  const joinGameRoom = () => {
+    socket.emit( "joiningGame", roomCreated )
+    setPlayerJoined( true )
+  }
+  useEffect( () => {
+    if ( playerJoined )
+      socket.on( 'event', d => {
+        setNoOfPlayerJoined( d )
+        socket.emit( "startGame", "players joined" )
+
+      } )
+  }, [ playerJoined ] )
+
   useEffect( () => {
     socket.auth = { username: userData?.name, db_id: userData?._id };
     socket.connect();
 
-
     socket.on( "connect", () => {
 
-      socket.on("game",(room)=>{
-    console.log('created room: ',userData._id!==room.roomId)
-        if(userData._id!==room.roomId)
-        {
-      handleModalClose()
-        socket.emit("joining Game",room)
-      
-    }
-      })
-     
-      socket.on("users joined",d=>console.log("users joined: ",d))
-      socket.on('event',(d)=>console.log('room chat: ',d))
+      socket.on( "game", ( room ) => {
+        console.log( 'created room: ', room )
+
+        setGameCreatedBy( { name: room.createdBy } )
+        if ( userData._id !== room.roomId ) {
+          handleModalOpen()
+          setRoomCreated( room )
+        }
+      } )
+
+      // socket.on( "users joined", d => console.log( "users joined: ", d ) )
+
       userOnlineList.forEach( ( user ) => {
 
         if ( user?.self ) {
           user.connected = true;
         }
       } );
+    } )
+
+    socket.on( 'startGame', () => {
+      Router.push( '/game' )
     } )
     socket.on( "disconnect", () => {
       userOnlineList.forEach( ( user ) => {
@@ -102,6 +127,7 @@ const handleModalClose = ()=>{
     socket.on( "users", ( users ) => {
       console.log( 'users: ', users )
       setUserOnlineList( users )
+        dispatch({type:setOnlineUsers,payload:users})
       setSelectedName( users.filter( u => u.username !== userData.name )[ 0 ] )
     } )
 
@@ -198,28 +224,28 @@ const handleModalClose = ()=>{
             } ) }
           </ul>
         </div>
-        <div className='w-9/12 flex flex-col justify-end'>
+        <div className='w-9/12 flex flex-col justify-between'>
           <ChatHeader onLogout={ onLogout } userData={ userData } selectedName={ selectedName } onCreateGameClick={ onCreateGameClick } createBtnPressed={ createBtnPressed } />
           <Chat bulkMessage={ bulkMessage } />
-          <ChatFooter message={ message } sendMessage={ sendMessage } setMessage={ setMessage } />
-          {modalOpen && <Modal><div className='h-[250px] w-[380px] flex justify-center items-center rounded-md  bg-white'>
+          <ChatFooter message={ message } sendMessage={ sendMessage } setMessage={ setMessage } onlineUserList={ userOnlineList } />
+          { modalOpen && <Modal><div className='h-[250px] w-[380px] flex justify-center items-center rounded-md  bg-white'>
             <div className='w-full h-full'>
               <p className='text-center my-5 text-xl text-success'>Match Joining Pool</p>
-              <p className='text-center my-5'>kamal Created the Game?</p>
-            <p className='text-center'>Players Joined</p>
-            <p className='text-center'>2/4</p>
-            <div className='flex justify-between mx-3 '>
-              <button className='bg-success py-2 px-4 rounded-md text-white'>Join</button>
-              <p className='text-error' onClick={handleModalClose}>Cancel</p>
+              <p className='text-center text-black my-5'>{ gameCreatedBy?.name } Created the Game?</p>
+              <p className='text-center  text-black'>Players Joined</p>
+              <p className='text-center text-black'>{ noOfPlayerJoined }/4</p>
+              <div className='flex justify-between mx-3 '>
+                <button className='bg-success py-2 px-4 rounded-md text-white' onClick={ joinGameRoom }>Join</button>
+                <p className='text-error' onClick={ handleModalOpen }>Cancel</p>
+              </div>
             </div>
-            </div>
-       
-           </div></Modal>}
+
+          </div></Modal> }
 
         </div>
       </div>
       <ToastContainer />
-   
+
     </>
   )
 }
