@@ -35,34 +35,40 @@ const diceData = [{
 },
 {
   number:6,
-  img: require('../../assets/dice/dice_5.png')
+  img: require('../../assets/dice/dice_6.png')
 }
 ]
 
 useEffect(()=>{
 socket.on('diceVal',val=>{
-  console.log("diceVal",val)
+  rollDice(val)
 })
 },[])
 
 const getDiceNumber =()=>{
-  setDiceRoll(true)
 
+const val = getRandomNumber()
+socket.emit('diceRoll',val)
+}
+
+const rollDice = (val)=>{
+  setDiceRoll(true)
   setTimeout(()=>{
-    const val = getRandomNumber()
     setDiceImage(diceData.find(v=>v.number===val)?.img)
     setDiceRoll(false)
-    socket.emit('diceRoll',val)
-  },2000)
+  },1500)
 
+}
 
+const showDiceRollImage = ()=>{
+ 
 }
 
   return (
     <div className='text-2xl bg-white parent'>
  
        {temp.map((i,k)=><div key={k} className='child'> <p className='text-white p-2 text-center'>{i.username}</p>
-       <Image onClick={getDiceNumber} className={`${diceRoll && 'animate-spin duration-150'}  p-4 flex items-center justify-center`} 
+  <Image onClick={getDiceNumber} className={`${diceRoll && 'animate-spin duration-150'}  p-4 flex items-center justify-center`} 
        alt="Picture of the sice "
        onAnimationEnd={()=>setDiceRoll(false)}
         width={150} height={150} src={diceImage}/></div>)}
