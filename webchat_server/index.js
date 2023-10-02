@@ -90,8 +90,8 @@ io.on("connection", (socket) => {
     }
 
   socket.on('game',(room)=>{
-    redisClient.set(room.roomId,room.roomName)
- 
+    redisClient.set("myRoom",room.roomName)
+console.log(room)
     console.log(room.roomName+" created by ",room.createdBy) 
         socket.join(room.roomName)
      
@@ -121,12 +121,13 @@ io.on("connection", (socket) => {
     });
     
   });
-  socket.on("diceRoll",val=>{
-    console.log(socket.userID)
-    let roomname =    redisClient.get(socket.userID )
- roomname.then(r=>console.log(socket.userID,r))
+  socket.on("diceRoll",async (val)=>{
+    // console.log('list of rooms',socket.rooms)
+    // console.log(socket.userID)
+    let roomname =    await redisClient.get("myRoom")
+//  roomname.then(r=>console.log(socket.userID,r))
+io.sockets.in(roomname).emit("diceVal", val)
 
-    socket.emit("diceVal",val)
   })
 });
 //
